@@ -1,0 +1,5 @@
+aiohttp==3.5.4
+SQLAlchemy==1.1.14
+transaction==2.1.2
+zope.interface==4.4.2
+zope.sqlalchemy==0.7.7

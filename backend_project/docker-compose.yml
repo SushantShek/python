@@ -1,0 +1,18 @@
+version: '2.3'
+services:
+
+  app:
+    build: ./
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8080"]
+
+#  sqlite3:
+#    image: nouchka/sqlite3:latest
+#    stdin_open: true
+#    tty: true
+#    volumes:
+#      - ./db/:/root/db/

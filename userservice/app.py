@@ -1,24 +1,25 @@
 import logging
-#from aiohttp import web
-#import markdown
-#import os
+
 import shelve
-from flask import Flask, g, jsonify, request
+from aiohttp import web
+from flask import Flask, g, jsonify
 from flask_restful import Resource, Api, reqparse
 
 LOGGER = logging.getLogger(__name__)
 
-
-#routes = web.RouteTableDef()
-
 app = Flask(__name__)
+
 api = Api(app)
+
+# if __name__ == '__main__':
+#   app.run(debug=True)
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = shelve.open("users.db")
     return db
+
 
 @app.teardown_appcontext
 def teardown_db(exception):
@@ -28,24 +29,26 @@ def teardown_db(exception):
 
 
 @app.route('/')
-async def health(self):
+def health(self):
     return jsonify({'name': 'user-service'})
 
+
+
+
 class UserGetCreate(Resource):
-    @app.route('/users', methods=['GET'])
-    async def get_users(self):
+    #   @app.route('/users', methods=['GET'])
+    def get(self):
         shelf = get_db()
         keys = list(shelf.keys())
 
         users = []
         for key in keys:
-            users.append(shelf[key],status=200)
+            users.append(shelf[key], status=200)
 
-        return jsonify({'users' : users})
+        return jsonify({'users': users})
 
-
-    @app.route('/users', methods=['POST'])
-    async def create_user(self):
+    # @app.route('/users', methods=['POST'])
+    def create_user(self):
         parser = reqparse.RequestParser()
 
         parser.add_argument('id', required=True)
@@ -59,10 +62,10 @@ class UserGetCreate(Resource):
 
         return jsonify({'user': args}, status=201)
 
-class UserUpdateDelete(Resource):
-    @app.route('/users/{user_id}', method=['PUT'])
-    async def update_user(user_id):
-       # user_id=request.match_info.get('user_id','0')
+
+class UserUpdate(Resource):
+    # @app.route('/users/<string:user_id>', method=['PUT'])
+    def update(self, user_id):
         shelf = get_db()
 
         if not (user_id in shelf):
@@ -77,14 +80,11 @@ class UserUpdateDelete(Resource):
         args = parser.parse_args()
 
         shelf[args[user_id]] = args
-        #shelf.update(id,request)
+        # shelf.update(id,request)
         return jsonify({'message': 'Device registered', 'data': args}, 201)
 
-
-
-    @app.route('/users/{user_id}', method = ['DELETE'])
-    async def delete_user(user_id):
-        #user_id = user_id.match_info.get('user_id', '0')
+    # @app.route('/users/<string:user_id>', method=['DELETE'])
+    def delete(self, user_id):
 
         shelf = get_db()
         if not (user_id in shelf):
@@ -95,6 +95,9 @@ class UserUpdateDelete(Resource):
         return jsonify(None, status=204)
 
 
+api.add_resource(UserGetCreate, '/users')
+api.add_resource(UserUpdate, '/users/<string:user_id>')
 
-api.add_resource(UserGetCreate,'/users')
-api.add_resource(UserUpdateDelete,'/users')
+
+def create_app():
+    return app
